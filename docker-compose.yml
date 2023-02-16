@@ -9,6 +9,8 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
       - MARIADB_USER=admin
       - MARIADB_DATABASE=solar-panel
+    volumes:
+      - ./data:/bitnami/mariadb
 
   laravel:
     image: docker.io/bitnami/laravel:10
@@ -20,7 +22,7 @@ services:
       - DB_USERNAME=admin
       - DB_DATABASE=solar-panel
     volumes:
-      - './back-end:/app'
+      - '/back-end:/app'
     depends_on:
       - mariadb
 
