@@ -12,8 +12,6 @@ Aplicación de automatización de un panel solar con motores, que utiliza inteli
 
 **Miguel García del Real Ortiz** -> Servidor de Placa Solar y parte del maquetado
 
-
-
 ### Esquema de la Estructura del proyecto
 
 ![Imagen con la estructura del proyecto](Architecture.jpg)
