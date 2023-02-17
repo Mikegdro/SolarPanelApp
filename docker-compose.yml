@@ -22,7 +22,7 @@ services:
       - DB_USERNAME=admin
       - DB_DATABASE=solar-panel
     volumes:
-      - '/back-end:/app'
+      - './back-end:/app'
     depends_on:
       - mariadb
 
