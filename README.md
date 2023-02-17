@@ -16,7 +16,7 @@ Aplicación de automatización de un panel solar con motores, que utiliza inteli
 
 ### Esquema de la Estructura del proyecto
 
-![Imagen con la estructura del proyecto](Architecture.png)
+![Imagen con la estructura del proyecto](Architecture.jpg)
 
 ### Instalación del proyecto para su desarrollo
 
