@@ -34,7 +34,7 @@ Si esto no es posible, es necesario correr `npm run build` para compilar los arc
 
 ### Servidor [WebSocket](https://python-socketio.readthedocs.io/en/latest/client.html#installation) en Python
 
-Para utilizar la librería recomiendo usar un [venv](https://docs.python.org/3/library/venv.html) (virtual environment) esto es como crear un 'node_modules' pero para las dependencias de python, para que así se nos instale en el proyecto y en el ordenador.
+Para utilizar la librería recomiendo usar un [venv](https://docs.python.org/3/library/venv.html) (virtual environment) esto es como crear un 'node_modules' pero para las dependencias de python, para que así se nos instale en el proyecto y no en el ordenador.
 
 Para instalar la librería de socket.io, hay que ejecutar el comando `pip install "python-socketio[client]"`, con esto ya podremos importarlo en nuestro código y usarlo.
 
