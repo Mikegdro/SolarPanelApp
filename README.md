@@ -29,4 +29,4 @@ Usar `composer install` dentro de la carpeta back-end para obtener todas las dep
 
 Podemos sacar provecho del Hot Module Replacement de VueJS arrancando 2 servidores, 1 de laravel, con `php artisan serve` y otro de node con `npm run dev` de esta manera todo cambio que realicemos en los archivos de Vue se veran al instante en el navegador.
 
-Si esto no es posible, es necesario correr `npm run build` para compilar los archivos de Vue a Javascript y asi poder servirlos.
+Si esto no es posible, es necesario correr `npm run build` para compilar los archivos de Vue a Javascript y asi poder servirlos
