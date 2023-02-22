@@ -12,7 +12,9 @@ class Communication:
         @self.sio.event
         def connect():
             print('connection established')
-            self.sio.emit('login', {'token': 'token'})
+            self.sio.emit('solar-panel-update', {
+                'panelId': '1234'
+            })
 
         @self.sio.event
         def my_message(data):
@@ -24,8 +26,10 @@ class Communication:
     
     def connect(self, ip):
         #Para que la conexión funcione se tiene que conectar a un nombre de espacios concreto
-        self.sio.connect(ip, namespaces="/panel-solar" ,wait_timeout = 10, socketio_path='/regex')
+        self.sio.connect(ip, wait_timeout = 10, auth={
+            'token': 'holi'
+        })
         self.sio.wait()
 
 coms = Communication("coms")
-coms.connect('http://localhost:8023')
+coms.connect('http://192.168.108.4:3000')
