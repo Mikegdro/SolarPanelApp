@@ -2,24 +2,26 @@ version: '2'
 
 services:
   mariadb:
-    image: docker.io/bitnami/mariadb:10.6
+    image: mariadb
     restart: always
     environment:
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - ALLOW_EMPTY_PASSWORD=yes
-      - MARIADB_USER=admin
-      - MARIADB_DATABASE=solar-panel
+      - MYSQL_ROOT_PASSWORD=S3cret
+      - MYSQL_PASSWORD=adminpass
+      - MYSQL_USER=admin
+      - MYSQL_DATABASE=solar-panel
     volumes:
-      - ./data:/bitnami/mariadb
+      - ./data:/var/lib/mysql
 
   laravel:
-    image: docker.io/bitnami/laravel:10
+    build: ./back-end
     ports:
       - '8000:8000'
+      - '5173:5173'
     environment:
       - DB_HOST=mariadb
       - DB_PORT=3306
       - DB_USERNAME=admin
+      - DB_PASSWORD=adminpass
       - DB_DATABASE=solar-panel
     volumes:
       - './back-end:/app'
@@ -35,9 +37,8 @@ services:
       - PMA_HOST=mariadb
       - PMA_PORT=3306
       - PMA_USER=admin
-      - PMA_PASSWORD=
+      - PMA_PASSWORD=adminpass
       - PMA_ARBITRARY=1
 
     depends_on:
       - mariadb
-
