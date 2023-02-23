@@ -1,4 +1,8 @@
+from Sol import Sol
 import socketio
+import base64
+import cv2
+import sys
 
 class Communication:
 
@@ -16,10 +20,25 @@ class Communication:
                 'panelId': '1234'
             })
 
-        @self.sio.event
-        def my_message(data):
-            print(data)
+        @self.sio.on('solar-panel-photo')
+        def message_handler(data):
 
+            print('solar')
+            # sol = Sol
+            # sol.findCircle(sol)
+            # img = sol.getPhoto(sol)
+
+            img = cv2.imread('./sun.png')
+            # img = cv2.imencode('.jpg', img)
+            # encoded_string = base64.b64encode(img);
+
+            # self.sio.emit('solar-panel-photo', {
+
+            # })
+
+            print(sys.getsizeof(img) * 1* 10 ** -3)
+
+            
         @self.sio.event
         def disconnect():
             print('disconnected from server')
@@ -33,3 +52,5 @@ class Communication:
 
 coms = Communication("coms")
 coms.connect('http://192.168.108.4:3000')
+
+
