@@ -1,13 +1,23 @@
-const { MongoClient } = require("mongodb");
-const uri = "mongodb://mongoadmin:secret@localhost:1888/?authMechanism=DEFAULT";
-const client = new MongoClient(uri);
-const database = client.db("panel-logs");
-
+const fs = require('fs');
+require('dotenv').config();
 const io = require("socket.io")(3000, {
     cors: {
         origin: ["http://localhost:8080"], // Aquí se pondrán el/los clientes que se conecten al ws
     },
 });
+const oneDay = 86400000;
+const interval = 7200000;
+let start = Date.now();
+
+setInterval(() =>{
+    let now = Date.now();
+    let elapsed = now - start;
+    if(elapsed >= oneDay){
+        start = Date.now();
+        console.log(process.env.PRIVATE_KEY);
+        // Fetch a ruta de api para volcar los datos en la bd
+    }
+}, interval)
 
 
 function authMiddleware(socket : any, next : Function){
@@ -36,26 +46,57 @@ io.on('connection', (socket : any) =>{
     
     socket.on('solar-panel-update', (data : PanelUpdate) =>{
         if(instanceOfPanelUpdate(data)){
-            insertLog(data);
+            // insertLog(data);
             io.emit('panel-update', data);
+            io.emit('solar-panel-photo', "hola");
         }
+    });
+
+    socket.on('solar-panel-photo', (data : any) =>{
+        console.log("HA LLEGADO: ");
+        console.log(data);
+        // insertLog(data);
     })
 })
 
 
-async function insertLog(data : PanelUpdate){
-    const haiku = database.collection("logs");
-    const result = await haiku.insertOne(data);
-    console.log(`A document was inserted with the _id: ${result.insertedId}`);
+function insertLog(data : PanelUpdate){
+    let file = fs.readFileSync('logs.json');
+    let fileData = JSON.parse(file);
+    if(fileData[data.id]){
+        fileData[data.id].push(data);
+    }else{
+        fileData[data.id] = [data];
+    }
+    let newData = JSON.stringify(fileData);
+    fs.writeFile('logs.json', newData, (err : any) => {
+        // error checking
+        if(err) throw err;
+        
+        // console.log("New data added");
+    });  
 }
+insertLog({
+    id: "panel2",
+    time: "234",
+    log: {
+        sensor1: 12,
+        sensor2: 32,
+        sensor3: 52,
+        sensor4: 52,
+        motor1: 52,
+        motor2: 23,
+        battery: "6235", // %
+        potency: 23, // Maybe?
+        image: "ddadasqwdadawadasd", // base64???
+        ocvOutput: "ddadasqwdadawadasd"
+    }
+})
 
 interface PanelUpdate {
-    panelId: number// Identificador único del panel
-    time: string// Hora actual
-    sunsetTime: string // Lo que queda para la puesta de sol
-    status: {
-        sunY: number // 0-1
-        sunX: number // 0-1
+    id: string// Identificador único del panel
+    time: string // Fecha del update
+    log: {
         sensor1: number
         sensor2: number
         sensor3: number
@@ -63,8 +104,9 @@ interface PanelUpdate {
         motor1: number
         motor2: number
         battery: string // %
-        kWh: number // Maybe?
+        potency: number // Maybe?
         image: string // base64???
+        ocvOutput: string
     }
 }
 

@@ -1,49 +1,23 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var MongoClient = require("mongodb").MongoClient;
-var uri = "mongodb://mongoadmin:secret@localhost:1888/?authMechanism=DEFAULT";
-var client = new MongoClient(uri);
-var database = client.db("panel-logs");
+var fs = require('fs');
+require('dotenv').config();
 var io = require("socket.io")(3000, {
     cors: {
         origin: ["http://localhost:8080"], // Aquí se pondrán el/los clientes que se conecten al ws
     },
 });
+var oneDay = 86400000;
+var interval = 7200000;
+var start = Date.now();
+setInterval(function () {
+    var now = Date.now();
+    var elapsed = now - start;
+    if (elapsed >= oneDay) {
+        start = Date.now();
+        console.log(process.env.PRIVATE_KEY);
+        // Fetch a ruta de api para volcar los datos en la bd
+    }
+}, interval);
 function authMiddleware(socket, next) {
     if (socket.handshake.auth.token) {
         var isAuth = true;
@@ -70,27 +44,50 @@ io.on('connection', function (socket) {
     console.log("socket connected: " + socket);
     socket.on('solar-panel-update', function (data) {
         if (instanceOfPanelUpdate(data)) {
-            insertLog(data);
+            // insertLog(data);
             io.emit('panel-update', data);
+            io.emit('solar-panel-photo', "hola");
         }
+    });
+    socket.on('solar-panel-photo', function (data) {
+        console.log("HA LLEGADO: ");
+        console.log(data);
+        // insertLog(data);
     });
 });
 function insertLog(data) {
-    return __awaiter(this, void 0, void 0, function () {
-        var haiku, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    haiku = database.collection("logs");
-                    return [4 /*yield*/, haiku.insertOne(data)];
-                case 1:
-                    result = _a.sent();
-                    console.log("A document was inserted with the _id: ".concat(result.insertedId));
-                    return [2 /*return*/];
-            }
-        });
+    var file = fs.readFileSync('logs.json');
+    var fileData = JSON.parse(file);
+    if (fileData[data.id]) {
+        fileData[data.id].push(data);
+    }
+    else {
+        fileData[data.id] = [data];
+    }
+    var newData = JSON.stringify(fileData);
+    fs.writeFile('logs.json', newData, function (err) {
+        // error checking
+        if (err)
+            throw err;
+        // console.log("New data added");
     });
 }
+insertLog({
+    id: "panel2",
+    time: "234",
+    log: {
+        sensor1: 12,
+        sensor2: 32,
+        sensor3: 52,
+        sensor4: 52,
+        motor1: 52,
+        motor2: 23,
+        battery: "6235",
+        potency: 23,
+        image: "ddadasqwdadawadasd",
+        ocvOutput: "ddadasqwdadawadasd"
+    }
+});
 function instanceOfPanelUpdate(object) {
     return 'panelId' in object;
 }

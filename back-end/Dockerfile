@@ -2,10 +2,6 @@ FROM php:8.1.9-fpm-alpine
 RUN apk --no-cache upgrade && \
     apk --no-cache add bash git sudo openssh  libxml2-dev oniguruma-dev autoconf gcc g++ make npm freetype-dev libjpeg-turbo-dev libpng-dev libzip-dev
 
-
-
-
-
 # PHP: Install php extensions
 RUN pecl channel-update pecl.php.net
 RUN pecl install pcov ssh2 swoole
