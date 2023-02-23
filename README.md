@@ -39,3 +39,13 @@ Para utilizar la librería recomiendo usar un [venv](https://docs.python.org/3/l
 Para instalar la librería de socket.io, hay que ejecutar el comando `pip install "python-socketio[client]"`, con esto ya podremos importarlo en nuestro código y usarlo.
 
 > Importante: Para que funcione el cliente de Python, es necesario que el servidor tenga configurado un namespace, si no lo tiene no es capaz de realizar al conexión.
+
+### Inteligencia Artificial con Python [OpenCV2](https://www.geeksforgeeks.org/circle-detection-using-opencv-python/) en Python
+
+Se utiliza la biblioteca de cv2 de OpenCV, para detectar la posición del sol y calcular el movimiento necesario para que la placa apunte hacia el siendo lo más eficiente posible.
+
+    TO-DO:
+        · Pasar imágenes a través de web socket
+        · Implementar que lance un comando del sistema en ves de coger la imagen en local
+        · Implementar funcionalidad de auto-colocación.
+        · Implementar funcionalidad de parar y encender la auto-colocación con un comando de WS.
