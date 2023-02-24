@@ -3,6 +3,7 @@ import socketio
 import base64
 import cv2
 import sys
+import magic
 
 class Communication:
 
@@ -16,29 +17,45 @@ class Communication:
         @self.sio.event
         def connect():
             print('connection established')
-            self.sio.emit('solar-panel-update', {
-                'panelId': '1234'
-            })
+            # self.sio.emit('solar-panel-update', {
+            #     'panelId': '1234'
+            # })
 
         @self.sio.on('solar-panel-photo')
         def message_handler(data):
 
-            print('solar')
-            # sol = Sol
-            # sol.findCircle(sol)
-            # img = sol.getPhoto(sol)
+            print('taking photo')
 
-            img = cv2.imread('./sun.png')
-            # img = cv2.imencode('.jpg', img)
-            # encoded_string = base64.b64encode(img);
+            img = cv2.imread('./sunLowRes.jpg')
 
-            # self.sio.emit('solar-panel-photo', {
+            file = open('./sunLowRes.jpg', "rb")
+            file_data = file.read(56000)
 
-            # })
+            try:
+                self.sio.emit('message', {
+                    "data": file_data,
+                })
 
-            print(sys.getsizeof(img) * 1* 10 ** -3)
+            except:
+                print("f")
 
-            
+        @self.sio.on("take-photo")
+        def take_photo():
+            print('taking photo')
+
+            img = cv2.imread('./sunLowRes.jpg')
+
+            file = open('./sunLowRes.jpg', "rb")
+            file_data = file.read(56000)
+
+            try:
+                self.sio.emit('message', {
+                    "data": file_data,
+                })
+
+            except:
+                print("f")
+
         @self.sio.event
         def disconnect():
             print('disconnected from server')
@@ -51,6 +68,6 @@ class Communication:
         self.sio.wait()
 
 coms = Communication("coms")
-coms.connect('http://192.168.108.4:3000')
+coms.connect('http://localhost:8023')
 
 
