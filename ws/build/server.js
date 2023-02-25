@@ -40,7 +40,7 @@ var axios = require('axios');
 var redis = require("redis");
 var jwt = require('jsonwebtoken');
 var client = redis.createClient({
-    url: 'redis://localhost:6379' // Cambiar localhost por nombre contenedor Docker
+    url: 'redis://redis:6379' // Cambiar localhost por nombre contenedor Docker
 });
 function connectRedis() {
     return __awaiter(this, void 0, void 0, function () {

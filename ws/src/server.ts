@@ -4,7 +4,7 @@ const redis = require("redis");
 const jwt = require('jsonwebtoken');
 
 const client = redis.createClient({
-    url: 'redis://localhost:6379' // Cambiar localhost por nombre contenedor Docker
+    url: 'redis://redis:6379' // Cambiar localhost por nombre contenedor Docker
 });
 async function connectRedis(){
     await client.connect()

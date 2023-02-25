@@ -42,3 +42,17 @@ services:
 
     depends_on:
       - mariadb
+
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - '6379:6379'
+
+  ws:
+    build: ./ws
+    restart: always
+    ports:
+      - '3000:3000'
+    depends_on:
+      - redis
