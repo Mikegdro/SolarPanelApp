@@ -1,40 +1,75 @@
 const fs = require('fs');
+const axios = require('axios');
+const redis = require("redis");
+const jwt = require('jsonwebtoken');
+
+const client = redis.createClient({
+    url: 'redis://localhost:6379' // Cambiar localhost por nombre contenedor Docker
+});
+async function connectRedis(){
+    await client.connect()
+}
+connectRedis();
+
 require('dotenv').config();
 const io = require("socket.io")(3000, {
     cors: {
         origin: ["http://localhost:8080"], // Aquí se pondrán el/los clientes que se conecten al ws
     },
 });
+
 const oneDay = 86400000;
 const interval = 7200000;
 let start = Date.now();
 
-setInterval(() =>{
+// Modelos de mensajes
+interface PanelUpdate {
+    id: string// Identificador único del panel
+    time: string // Fecha del update
+    type: string
+    log: {
+        sensor1: number
+        sensor2: number
+        sensor3: number
+        sensor4: number
+        motor1: number
+        motor2: number
+        battery: string
+        potency: number
+        image: string
+        ocvOutput: string
+    }
+}
+
+interface PanelCommand {
+    id: string
+    command: string
+}
+
+// Intervalo para que cada 24 horas de dumpee el json a la db
+setInterval(async () =>{
     let now = Date.now();
     let elapsed = now - start;
     if(elapsed >= oneDay){
         start = Date.now();
-        console.log(process.env.PRIVATE_KEY);
-        // Fetch a ruta de api para volcar los datos en la bd
+        axios.post("http://laravel:8000/api/dump", getLogs())
+            .catch((e : any) =>{
+                console.log(e.message)
+            })
+            .then(() =>{
+                console.log("Data Dumped: " + new Date(Date.now()));
+            });
     }
 }, interval)
 
-
-function authMiddleware(socket : any, next : Function){
+async function authMiddleware(socket : any, next : Function){
     if(socket.handshake.auth.token){
-        let isAuth = true;
-        // let isAuth = fetch(api route de comprobar token);
-        if(!isAuth){
+        try{
+            // jwt.verify(socket.handshake.auth.token, process.env.PRIVATE_KEY); // Comprobamos si el token ha sido firmado por nosotros - Descomentar en producción
+            next();
+        }catch(e){
             next(new Error("The token provided is not valid"));
         }
-        next();
-    }else if(socket.handshake.auth.id){
-        let isAuth = true;
-        // let isAuth = fetch(api route de comprobar id del panel en whitelist);
-        if(!isAuth){
-            next(new Error("The panel id provided is not registered as valid"));
-        }
-        next();
     }else{
         next(new Error("You need to authenticate to establish a connection"));
     }
@@ -46,19 +81,34 @@ io.on('connection', (socket : any) =>{
     
     socket.on('solar-panel-update', (data : PanelUpdate) =>{
         if(instanceOfPanelUpdate(data)){
-            // insertLog(data);
+            insertLog(data);
             io.emit('panel-update', data);
-            io.emit('solar-panel-photo', "hola");
         }
     });
 
-    socket.on('solar-panel-photo', (data : any) =>{
-        console.log("HA LLEGADO: ");
-        console.log(data);
-        // insertLog(data);
-    })
-})
+    socket.on('save-panel-id', (data : any) =>{
+        console.log(data)
+        client.set(data.id, socket.id);
+    });
 
+    socket.on('solar-panel-command', async (data : PanelCommand) =>{
+        let socketId = await client.get(data.id);
+        console.log(socketId)
+        io.to(socketId).emit('command', {
+            command: data.command,
+        });
+    });
+
+    socket.on('manual-data-dump', async () =>{
+        axios.post("http://laravel:8000/api/dump", getLogs())
+        .then(() =>{
+            console.log("Data Dumped: " + new Date(Date.now()));
+        })
+        .catch((e : any) =>{
+            console.log(e.message)
+        });
+    });
+})
 
 function insertLog(data : PanelUpdate){
     let file = fs.readFileSync('logs.json');
@@ -69,47 +119,19 @@ function insertLog(data : PanelUpdate){
         fileData[data.id] = [data];
     }
     let newData = JSON.stringify(fileData);
-    fs.writeFile('logs.json', newData, (err : any) => {
-        // error checking
+    fs.writeFileSync('logs.json', newData, (err : any) => {
         if(err) throw err;
         
-        // console.log("New data added");
+        console.log("New data added");
     });  
-}
-insertLog({
-    id: "panel2",
-    time: "234",
-    log: {
-        sensor1: 12,
-        sensor2: 32,
-        sensor3: 52,
-        sensor4: 52,
-        motor1: 52,
-        motor2: 23,
-        battery: "6235", // %
-        potency: 23, // Maybe?
-        image: "ddadasqwdadawadasd", // base64???
-        ocvOutput: "ddadasqwdadawadasd"
-    }
-})
-
-interface PanelUpdate {
-    id: string// Identificador único del panel
-    time: string // Fecha del update
-    log: {
-        sensor1: number
-        sensor2: number
-        sensor3: number
-        sensor4: number
-        motor1: number
-        motor2: number
-        battery: string // %
-        potency: number // Maybe?
-        image: string // base64???
-        ocvOutput: string
-    }
 }
 
 function instanceOfPanelUpdate(object: any): object is PanelUpdate {
-    return 'panelId' in object;
+    return 'id' in object;
+}
+
+function getLogs(){
+    let file = fs.readFileSync('logs.json');
+    let fileData = JSON.parse(file);
+    return fileData;
 }
