@@ -14,7 +14,7 @@ connectRedis();
 require('dotenv').config();
 const io = require("socket.io")(3000, {
     cors: {
-        origin: ["http://localhost:8080"], // Aquí se pondrán el/los clientes que se conecten al ws
+        origin: ["*"], // Aquí se pondrán el/los clientes que se conecten al ws
     },
 });
 

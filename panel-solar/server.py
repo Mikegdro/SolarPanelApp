@@ -68,6 +68,6 @@ class Communication:
         self.sio.wait()
 
 coms = Communication("coms")
-coms.connect('http://localhost:8023')
+coms.connect('http://localhost:3000')
 
 
