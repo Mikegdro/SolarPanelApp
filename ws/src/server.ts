@@ -86,6 +86,8 @@ io.on('connection', (socket : any) =>{
         }
     });
 
+    io.to(socket.id).emit('test')
+    
     socket.on('save-panel-id', (data : any) =>{
         console.log(data)
         client.set(data.id, socket.id);

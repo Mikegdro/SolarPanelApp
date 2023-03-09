@@ -111,6 +111,8 @@ io.on('connection', function (socket) {
             io.emit('panel-update', data);
         }
     });
+    io.to(socket.id).emit('test');
+    console.log(socket.id);
     socket.on('save-panel-id', function (data) {
         console.log(data);
         client.set(data.id, socket.id);

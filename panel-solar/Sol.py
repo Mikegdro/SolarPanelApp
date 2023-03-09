@@ -55,6 +55,6 @@ class Sol:
 
     
 
-# sol = Sol("hi")
-# sol.takePhoto()
-# sol.findCircle()
+sol = Sol("hi")
+sol.takePhoto()
+sol.findCircle()

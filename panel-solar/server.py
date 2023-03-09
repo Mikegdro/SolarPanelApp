@@ -4,6 +4,8 @@ import base64
 import cv2
 import sys
 import magic
+import os
+import time
 
 class Communication:
 
@@ -55,6 +57,39 @@ class Communication:
 
             except:
                 print("f")
+
+        @self.sio.on('test')
+        def test():
+            #Comando de foto
+            os.system('python3 <nombre-archivo>')
+
+            #Leemos la salida de texto del script de la pi
+            resultado = open('fiechero de salida aquí')
+            status = resultado.readline()
+
+            #Mientras la salida no sea que el programa ha terminado
+            while status == '1':
+                time.sleep(1)
+                status = resultado.readline()  
+
+            
+
+            #Comando de movimiento
+            os.system('python3 <nombre-archivo>')
+
+            #Leemos la salida de texto del script de la pi
+            resultado = open('fichero de salida aquí')
+            status = resultado.readline()
+
+            #Mientras no sea que el programa ha terminado 
+            while status == '1':
+                time.sleep(1)
+                status = resultado.readline()
+
+            try:
+                self.sio.emit('comando acabado')
+            except:
+                print('comando ejecutado')
 
         @self.sio.event
         def disconnect():
