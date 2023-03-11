@@ -1,17 +1,34 @@
 import cv2
 import numpy as np
 import time
+import os
+import math
 
 class Sol:
 
     # Esta función ejecuta el comando de sistema que hace que el panel solar haga una foto al sol
     def takePhoto( self ):
-        #Por ahora coge una foto de local
         try:
-            self.img = cv2.imread("./sunLowRes.jpg", cv2.IMREAD_COLOR)
+            # # Comando de sistema que hace una foto
+            # os.system('python3 <nombre-archivo>')
+
+            # # Leemos la salida de texto de la PI
+            # resultado = open('fiechero de salida aquí')
+            # status = resultado.readline()
+
+            # # Mientras la salida no sea positiva esperamos
+            # while status != '1':
+            #     time.sleep(5)
+            #     status = resultado.readline()
+
+            #Recogemos la foto realizada
+            self.img = cv2.imread("./sunPhoto.jpg", cv2.IMREAD_COLOR)
+
             print("Imagen Abierta")
-        except IOError:
-            print("Error"+IOError)
+
+        except Exception:
+
+            print("Error", Exception)
 
     # Esta función ejecuta la inteligencia artificial y en caso de que el modo auto esté activado ejecta la función de movimiento
     def findCircle( self ):
@@ -50,18 +67,23 @@ class Sol:
 
             ejex = circles[0][0]
             ejey = circles[0][1]
+            ejez = circles[0][2]
 
-            return {ejex, ejey}
+            return {ejex, ejey, ejez}
     
     # Devuelve la foto almacenada en la clase
     def getPhoto( self ):
         return self.img
 
     # Constructor de la clase
-    def __init__( self ):
+    def __init__( self, sendInfo ):
         self.auto = True
         self.img = None
         self.coords = None
+        self.debug = True
+
+        # Callback con la función a ejecutar para mandar datos
+        self.sendInfo = sendInfo
 
         self.adjustPanel()
 
@@ -85,11 +107,31 @@ class Sol:
         # Si la IA encuentra algo movemos el panel
         self.movePanel()
 
+        #self.sendInfo([self.coords, self.img])
+
     # Función que ejecuta el algoritmo de cálculo y ejecuta
     # los comandos del sistema para mover la placa
     def movePanel( self ):
+        # Info
         print('Moviendo Panel')
-        
+
+        imgCoords = self.img.shape
+        self.coords = list(self.coords)
+        diffX = imgCoords[1] / 2 - (self.coords[0])
+        diffY = imgCoords[0] / 2 - (self.coords[1])
+
+        # Con la hipotenusa podemos comprobar si el centro de la imagen está dentro del radio
+        # del sol por lo que podemos optimizar mucho más el programa
+        hipotenusa = math.sqrt(pow(diffX, 2) + pow(diffY, 2))
+
+        if self.debug:
+            self.debugPanel(imgCoords, diffX, diffY, hipotenusa)
+
+        # Solo movemos las placa cuando el sol no esté en el centro de la foto
+        if hipotenusa < self.coords[2]:
+            self.moveXAxis(diffX, True)
+            self.moveYAxis(diffY, True)
+                
     # Función que duerme el programa el tiempo necesario
     # dependiendo de la situación
     def sleep( self ):
@@ -102,4 +144,43 @@ class Sol:
 
         self.adjustPanel()
 
-sol = Sol()
+
+    def debugPanel( self, imgCoords, diffX, diffY, hipotenusa):
+        print("Panel Info:")
+        print(' EjeX de la foto:' + str(imgCoords[1] / 2) + ' - ' + 'EjeX de la IA ' + str(self.coords[0]) + ' =  Resultado : ' + str(diffX) + 'px')
+        print(' EjeY de la foto:' + str(imgCoords[0] / 2) + ' - ' + 'EjeY de la IA ' + str(self.coords[1]) + ' =  Resultado : ' + str(diffX) + 'px')
+        print(' Datos de la Imagen ' + str(imgCoords), 'Datos devueltos de la IA ' + str(self.coords))
+        print(' Distancia del centro de la foto al centro del sol: ' + str(hipotenusa) + ' px')
+        
+        if hipotenusa < self.coords[2]:
+            print(' El sol está en el centro de la foto')
+        else:
+            print(' El sol no está en el centro de la foto')
+
+    # Mueve la placa en el EjeX        
+    def moveXAxis( self, amount, auto ):
+        
+        # Alteramos la variable auto con la que nos entra
+        # será True si es interna, False si es externa (comando usuario)
+        self.auto = auto
+
+        # Comando de movimiento
+        os.system('python3 <nombre-archivo> xAxis' + str(amount))
+
+        # Esperamos 5 segundos y comprobamos si ha terminado
+        time.wait(5)
+
+
+    # Mueve la placa en el EjeY
+    def moveYAxis( self, amount, auto):
+        # Alteramos la variable auto con la que nos entra
+        # será True si es interna, False si es externa (comando usuario)
+        self.auto = auto
+
+        #Comando de movimiento
+        os.system('python3 <nombre-archivo> yxAxis' + str(amount))
+
+def sendInfo( info ):
+    print('Sending Info', info)
+
+sol = Sol(sendInfo)

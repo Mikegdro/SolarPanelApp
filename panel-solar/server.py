@@ -63,7 +63,7 @@ class PanelServer:
             #Comando de foto
             os.system('python3 <nombre-archivo>')
 
-            #Leemos la salida de texto del script de la pi
+            # Leemos la salida de texto del script de la pi
             resultado = open('fiechero de salida aquí')
             status = resultado.readline()
 
