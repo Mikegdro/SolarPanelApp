@@ -4,6 +4,8 @@ services:
   mariadb:
     image: mariadb
     restart: always
+    ports:
+       - '3306:3306'
     environment:
       - MYSQL_ROOT_PASSWORD=S3cret
       - MYSQL_PASSWORD=adminpass
@@ -12,21 +14,21 @@ services:
     volumes:
       - ./data:/var/lib/mysql
 
-  laravel:
-    build: ./back-end
-    ports:
-      - '8000:8000'
-      - '5173:5173'
-    environment:
-      - DB_HOST=mariadb
-      - DB_PORT=3306
-      - DB_USERNAME=admin
-      - DB_PASSWORD=adminpass
-      - DB_DATABASE=solar-panel
-    volumes:
-      - './back-end:/app'
-    depends_on:
-      - mariadb
+  # laravel:
+  #   build: ./back-end
+  #   ports:
+  #     - '8000:8000'
+  #     - '5173:5173'
+  #   environment:
+  #     - DB_HOST=mariadb
+  #     - DB_PORT=3306
+  #     - DB_USERNAME=admin
+  #     - DB_PASSWORD=adminpass
+  #     - DB_DATABASE=solar-panel
+  #   volumes:
+  #     - './back-end:/app'
+  #   depends_on:
+  #     - mariadb
 
   phpmyadmin:
     image: phpmyadmin
@@ -43,16 +45,16 @@ services:
     depends_on:
       - mariadb
 
-  redis:
-    image: redis:alpine
-    restart: always
-    ports:
-      - '6379:6379'
+  # redis:
+  #   image: redis:alpine
+  #   restart: always
+  #   ports:
+  #     - '6379:6379'
 
-  ws:
-    build: ./ws
-    restart: always
-    ports:
-      - '3000:3000'
-    depends_on:
-      - redis
+  # ws:
+  #   build: ./ws
+  #   restart: always
+  #   ports:
+  #     - '3000:3000'
+  #   depends_on:
+  #     - redis
