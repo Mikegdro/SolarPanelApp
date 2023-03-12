@@ -4,6 +4,7 @@ import time
 import os
 import math
 from dotenv import load_dotenv
+import base64
 
 load_dotenv()
 
@@ -150,6 +151,7 @@ class Sol:
 
         image2 = open("images/original.jpg", "rb")
         ocvOutput = image2.read(56000)
+        ocvOutput = base64.b64encode(ocvOutput)
         image2.close()
 
         self.updateData( "update", image, ocvOutput )
