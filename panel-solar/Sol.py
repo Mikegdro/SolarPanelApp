@@ -199,4 +199,4 @@ class Sol:
 def sendInfo( info ):
     print('Sending Info', info)
 
-sol = Sol(sendInfo)
+# sol = Sol(sendInfo)

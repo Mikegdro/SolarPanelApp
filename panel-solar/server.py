@@ -1,5 +1,10 @@
-from Sol import Sol
 import socketio
+import os
+
+from Sol import Sol
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Clase PanelServer
 class PanelServer:
@@ -15,7 +20,7 @@ class PanelServer:
         def connect():
             print('Connection established')
             print('Initializing Solar Panel')
-            self.panel = Sol()
+            self.panel = Sol(sendInfo)
 
         # Evento de activación/desactivación del modo auto del panel
         @self.sio.on('solar-panel-auto')
@@ -31,9 +36,15 @@ class PanelServer:
         @self.sio.event
         def disconnect():
             print('disconnected from server')
+
+        def sendInfo(info):
+            print('Sending Info' + str(info))
     
     # Función que recibe la ip del servidor principal e intenta conectarse 
-    def connect(self, ip):
+    def connect(self):
+        ip = os.getenv('SERVER_IP')
+        print(ip)
+
         #Para que la conexión funcione se tiene que conectar a un nombre de espacios concreto
         self.sio.connect(ip, wait_timeout = 10, auth={
             'token': 'holi'
@@ -42,7 +53,7 @@ class PanelServer:
         self.sio.wait()
 
 # Creación de la clase e instrucción de conexión con la IP
-coms = PanelServer("coms")
-coms.connect('http://localhost:3000')
+coms = PanelServer()
+coms.connect()
 
 
