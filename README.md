@@ -4,13 +4,13 @@ Aplicación de automatización de un panel solar con motores, que utiliza inteli
 
 ## Integrantes del equipo
 
-**Sergio Parejo** -> Servidor WebSocket, Base de datos con Mongo
+**Sergio Parejo** -> Servidor WebSocket, Base de datos con MySQL, Back-End
 
-**Adrián García** -> API Rest con laravel
+**Adrián García** -> X
 
-**Raul Guerrero** -> Diseño y parte del maquetado
+**Raul Guerrero** -> X
 
-**Miguel García del Real Ortiz** -> Servidor de Placa Solar y parte del maquetado
+**Miguel García del Real Ortiz** -> Servidor de Placa Solar y Diseño y maquetado de la interfaz
 
 ### Esquema de la Estructura del proyecto
 
