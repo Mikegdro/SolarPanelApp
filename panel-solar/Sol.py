@@ -109,6 +109,8 @@ class Sol:
 
         self.sendInfo([self.coords, self.img])
 
+        print("Sending info")
+
         self.sleep()
 
     # Función que ejecuta el algoritmo de cálculo y ejecuta
@@ -131,8 +133,8 @@ class Sol:
 
         # Solo movemos las placa cuando el sol no esté en el centro de la foto
         if hipotenusa < self.coords[2]:
-            self.moveXAxis(diffX, True)
-            self.moveYAxis(diffY, True)
+            self.moveAxis('x', diffX, True)
+            self.moveAxis('y', diffY, True)
         else:
             self.sleep()
                 
@@ -162,7 +164,7 @@ class Sol:
             print(' El sol no está en el centro de la foto')
 
     # Mueve la placa en el EjeX        
-    def moveXAxis( self, amount, auto ):
+    def moveAxis( self, axis, amount, auto ):
         
         # Alteramos la variable auto con la que nos entra
         # será True si es interna, False si es externa (comando usuario)
@@ -171,33 +173,24 @@ class Sol:
         # Comando de movimiento
         os.system(os.getenv('MOVE_COMMAND'))
 
-        resultado = open('fiechero de salida aquí')
+        # Recogemos la salida del comando
+        resultado = open(os.getenv('MOVE_FILE'))
+        finished = resultado.readline() == '0'
 
-        finished = False
+        # Inicializamos una variable de contador para el máximo de intentos
+        tries = 1
 
-        while not finished:
+        # Bucle que espera el cambio en el archivo de referencia
+        # TODO -> que mande un mensaje de error al servidor para almacenarlo como log cuando falle con los datos
+        while not finished or tries == 5:
+
+            resultado = open(os.getenv('MOVE_FILE'))
             status = resultado.readline()
+
             finished = False if status == '1' else True
-            time.sleep(5)
 
-    # Mueve la placa en el EjeY
-    def moveYAxis( self, amount, auto):
-        # Alteramos la variable auto con la que nos entra
-        # será True si es interna, False si es externa (comando usuario)
-        self.auto = auto
+            tries + 1
 
-        # Comando de movimiento
-        os.system(os.getenv('PHOTO_COMMAND'))
-
-        # Comprobamos la salida del comando y hasta que no haya acabado
-        # no continúa
-        resultado = open('fichero de salida aquí')
-
-        finished = False
-
-        while not finished:
-            status = resultado.readline()
-            finished = False if status == '1' else True
             time.sleep(5)
 
 def sendInfo( info ):
