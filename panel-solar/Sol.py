@@ -3,6 +3,9 @@ import numpy as np
 import time
 import os
 import math
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Sol:
 
@@ -70,10 +73,6 @@ class Sol:
             ejez = circles[0][2]
 
             return {ejex, ejey, ejez}
-    
-    # Devuelve la foto almacenada en la clase
-    def getPhoto( self ):
-        return self.img
 
     # Constructor de la clase
     def __init__( self, sendInfo ):
@@ -85,6 +84,7 @@ class Sol:
         # Callback con la función a ejecutar para mandar datos
         self.sendInfo = sendInfo
 
+        # Función que ejecuta el bucle principal recursivamente
         self.adjustPanel()
 
     # Función principal llamada de manera recursiva que 
@@ -107,7 +107,9 @@ class Sol:
         # Si la IA encuentra algo movemos el panel
         self.movePanel()
 
-        #self.sendInfo([self.coords, self.img])
+        self.sendInfo([self.coords, self.img])
+
+        self.sleep()
 
     # Función que ejecuta el algoritmo de cálculo y ejecuta
     # los comandos del sistema para mover la placa
@@ -131,6 +133,8 @@ class Sol:
         if hipotenusa < self.coords[2]:
             self.moveXAxis(diffX, True)
             self.moveYAxis(diffY, True)
+        else:
+            self.sleep()
                 
     # Función que duerme el programa el tiempo necesario
     # dependiendo de la situación
@@ -144,11 +148,11 @@ class Sol:
 
         self.adjustPanel()
 
-
+    # Función que saca por consola los datos de los cálculos del panel
     def debugPanel( self, imgCoords, diffX, diffY, hipotenusa):
         print("Panel Info:")
         print(' EjeX de la foto:' + str(imgCoords[1] / 2) + ' - ' + 'EjeX de la IA ' + str(self.coords[0]) + ' =  Resultado : ' + str(diffX) + 'px')
-        print(' EjeY de la foto:' + str(imgCoords[0] / 2) + ' - ' + 'EjeY de la IA ' + str(self.coords[1]) + ' =  Resultado : ' + str(diffX) + 'px')
+        print(' EjeY de la foto:' + str(imgCoords[0] / 2) + ' - ' + 'EjeY de la IA ' + str(self.coords[1]) + ' =  Resultado : ' + str(diffY) + 'px')
         print(' Datos de la Imagen ' + str(imgCoords), 'Datos devueltos de la IA ' + str(self.coords))
         print(' Distancia del centro de la foto al centro del sol: ' + str(hipotenusa) + ' px')
         
@@ -165,11 +169,16 @@ class Sol:
         self.auto = auto
 
         # Comando de movimiento
-        os.system('python3 <nombre-archivo> xAxis' + str(amount))
+        os.system(os.getenv('MOVE_COMMAND'))
 
-        # Esperamos 5 segundos y comprobamos si ha terminado
-        time.wait(5)
+        resultado = open('fiechero de salida aquí')
 
+        finished = False
+
+        while not finished:
+            status = resultado.readline()
+            finished = False if status == '1' else True
+            time.sleep(5)
 
     # Mueve la placa en el EjeY
     def moveYAxis( self, amount, auto):
@@ -177,8 +186,19 @@ class Sol:
         # será True si es interna, False si es externa (comando usuario)
         self.auto = auto
 
-        #Comando de movimiento
-        os.system('python3 <nombre-archivo> yxAxis' + str(amount))
+        # Comando de movimiento
+        os.system(os.getenv('PHOTO_COMMAND'))
+
+        # Comprobamos la salida del comando y hasta que no haya acabado
+        # no continúa
+        resultado = open('fichero de salida aquí')
+
+        finished = False
+
+        while not finished:
+            status = resultado.readline()
+            finished = False if status == '1' else True
+            time.sleep(5)
 
 def sendInfo( info ):
     print('Sending Info', info)

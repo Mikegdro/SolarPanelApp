@@ -23,3 +23,4 @@ Todo esto irá corriendo por detrás, pero una vez el servidor este conectado ta
 
 [CV2](https://pypi.org/project/opencv-python/) -> Inteligencia artificial para el reconocimiento de Círculos. <br/>
 [Socket.io](https://pypi.org/project/Flask-SocketIO/) -> Librería de WebSockets para la conexión cliente/servidor en tiempo real.
+[dotenv](https://pypi.org/project/python-dotenv/) -> Librería para leer variables de un archivo de configuración
