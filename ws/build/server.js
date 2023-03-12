@@ -106,13 +106,14 @@ io.use(authMiddleware);
 io.on('connection', function (socket) {
     console.log("socket connected: " + socket);
     socket.on('solar-panel-update', function (data) {
+        console.log(data);
         if (instanceOfPanelUpdate(data)) {
+            console.log("Inserting log...");
             insertLog(data);
             io.emit('panel-update', data);
         }
     });
     io.to(socket.id).emit('test');
-    console.log(socket.id);
     socket.on('save-panel-id', function (data) {
         console.log(data);
         client.set(data.id, socket.id);

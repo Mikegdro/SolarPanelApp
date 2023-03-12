@@ -13,8 +13,29 @@ class Sol:
     def __init__( self, sendInfo ):
         self.auto = True
         self.img = None
+
         self.coords = None
-        self.debug = True
+        self.id = os.getenv("PANEL_ID")
+
+        # Sensores de potencia
+        self.sensor1 = None
+        self.sensor2 = None
+        self.sensor3 = None
+        self.sensor4 = None
+
+        # Grados de inclinación de cada eje
+        self.motor1 = None
+        self.motor2 = None
+
+        # Estado de la batería y potenciómetro
+        self.battery = None
+        self.potency = None
+
+        # Modo Debug, se activa en el .env
+        self.debug = True if os.getenv("DEBUG_MODE") == 'YES' else False
+
+        # Ejecuta los comandos de sistema 
+        self.checkPanelHealth() 
 
         # Callback con la función a ejecutar para mandar datos
         self.sendInfo = sendInfo
@@ -22,6 +43,19 @@ class Sol:
         # Función que ejecuta el bucle principal recursivamente
         self.adjustPanel()
 
+    # Función que lee de un archivo status.txt el estado de todas las variables de la placa
+    def checkPanelHealth( self ):
+        statusFile = open(os.getenv('STATUS_FILE'))
+        self.sensor1 = statusFile.readline()
+        self.sensor2 = statusFile.readline()
+        self.sensor3 = statusFile.readline()
+        self.sensor4 = statusFile.readline()
+        self.motor1 = statusFile.readline()
+        self.motor2 = statusFile.readline()
+        self.battery = statusFile.readline()
+        self.potency = statusFile.readline()
+        statusFile.close();
+        
     # Esta función ejecuta el comando de sistema que hace que el panel solar haga una foto al sol
     def takePhoto( self ):
         try:
@@ -111,14 +145,38 @@ class Sol:
         print("Sending info")
 
         image1 = open("images/ia.jpg", "rb")
-        image1Data = image1.read(56000)
+        image = image1.read(56000)
+        image1.close()
 
         image2 = open("images/original.jpg", "rb")
-        image2Data = image2.read(56000)
+        ocvOutput = image2.read(56000)
+        image2.close()
 
-        self.sendInfo(self.coords, image1Data, image2Data)
+        self.updateData( "update", image, ocvOutput )
 
         self.sleep()
+
+    # Envía al servidor una actualización con los datos recogidos en el barrido actual
+    # Type es el tipo de log se creará, si es "update" será un log de información, si es "error" es un log de error
+    # Se puede añadir en un futuro un log "command" que se crea por comando de un usuario administrador
+    def updateData( self, type, image, ocvOutput ):
+        self.sendInfo({
+            "id": self.id,
+            "time": time.time(),
+            "type": type,
+            "log": {
+                "sensor1": self.sensor1,
+                "sensor2": self.sensor2,
+                "sensor3": self.sensor3,
+                "sensor4": self.sensor4,
+                "motor1": self.motor1,
+                "motor2": self.motor2,
+                "battery": self.battery,
+                "potency": self.potency,
+                "image": image,
+                "ocvOutput": ocvOutput
+            }
+        })
 
     # Función que ejecuta el algoritmo de cálculo y ejecuta
     # los comandos del sistema para mover la placa

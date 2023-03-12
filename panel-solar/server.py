@@ -40,12 +40,8 @@ class PanelServer:
         def disconnect():
             print('disconnected from server')
 
-        def sendInfo(coords, image1Data, image2Data):
-            self.sio.emit('message', {
-                "coords": json.dumps(coords),
-                "image1": image1Data,
-                "image2": image2Data
-            })
+        def sendInfo(data):
+            self.sio.emit('solar-panel-update', data)
     
     # Función que recibe la ip del servidor principal e intenta conectarse 
     def connect(self):

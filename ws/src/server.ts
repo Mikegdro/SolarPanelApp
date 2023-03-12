@@ -80,7 +80,9 @@ io.on('connection', (socket : any) =>{
     console.log("socket connected: " + socket);
     
     socket.on('solar-panel-update', (data : PanelUpdate) =>{
+        console.log(data)
         if(instanceOfPanelUpdate(data)){
+            console.log("Inserting log...")
             insertLog(data);
             io.emit('panel-update', data);
         }
@@ -114,13 +116,17 @@ io.on('connection', (socket : any) =>{
 
 function insertLog(data : PanelUpdate){
     let file = fs.readFileSync('logs.json');
+
     let fileData = JSON.parse(file);
+
     if(fileData[data.id]){
         fileData[data.id].push(data);
     }else{
         fileData[data.id] = [data];
     }
+
     let newData = JSON.stringify(fileData);
+    
     fs.writeFileSync('logs.json', newData, (err : any) => {
         if(err) throw err;
         
