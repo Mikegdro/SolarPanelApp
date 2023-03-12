@@ -3,8 +3,10 @@ import numpy as np
 import time
 import os
 import math
+
+import json
+
 from dotenv import load_dotenv
-import base64
 
 load_dotenv()
 
@@ -47,32 +49,24 @@ class Sol:
     # Función que lee de un archivo status.txt el estado de todas las variables de la placa
     def checkPanelHealth( self ):
         statusFile = open(os.getenv('STATUS_FILE'))
-        self.sensor1 = statusFile.readline()
-        self.sensor2 = statusFile.readline()
-        self.sensor3 = statusFile.readline()
-        self.sensor4 = statusFile.readline()
-        self.motor1 = statusFile.readline()
-        self.motor2 = statusFile.readline()
-        self.battery = statusFile.readline()
-        self.potency = statusFile.readline()
+        self.sensor1 = self.getPanelParams('sensor1')
+        self.sensor2 = self.getPanelParams('sensor2')
+        self.sensor3 = self.getPanelParams('sensor3')
+        self.sensor4 = self.getPanelParams('sensor4')
+        self.motor1 = self.getPanelParams('motores')[0]
+        self.motor2 = self.getPanelParams('motores')[1]
+        self.battery = self.getPanelParams('bateria')
+        self.potency = 'Potencia?'
         statusFile.close();
         
     # Esta función ejecuta el comando de sistema que hace que el panel solar haga una foto al sol
     def takePhoto( self ):
         try:
-            # # Comando de sistema que hace una foto
-            # os.system('python3 <nombre-archivo>')
+            # Comando de sistema que hace una foto
+            os.system(os.getenv('PHOTO_COMMAND'))
 
-            # # Leemos la salida de texto de la PI
-            # resultado = open('fiechero de salida aquí')
-            # status = resultado.readline()
-
-            # # Mientras la salida no sea positiva esperamos
-            # while status != '1':
-            #     time.sleep(5)
-            #     status = resultado.readline()
-
-            #Recogemos la foto realizada
+            # Recogemos la foto realizada
+            # DESCOMENTAR EN EL ENV EL ARCHIVO CORRECTO
             self.img = cv2.imread(os.getenv('ORIGINAL_IMAGE_URI'), cv2.IMREAD_COLOR)
 
             print("Imagen Abierta")
@@ -118,9 +112,9 @@ class Sol:
 
             ejex = int(circles[0][0])
             ejey = int(circles[0][1])
-            ejez = int(circles[0][2])
+            radio = int(circles[0][2])
 
-            return {ejex, ejey, ejez}
+            return { ejex, ejey, radio }
 
     # Función principal llamada de manera recursiva que 
     # establece el loop del programa
@@ -142,26 +136,28 @@ class Sol:
         # Si la IA encuentra algo movemos el panel
         self.movePanel()
 
-        # Mandamos la información sobre el movimiento
-        print("Sending info")
-
-        image1 = open("images/ia.jpg", "rb")
-        image = image1.read(56000)
-        image1.close()
-
-        image2 = open("images/original.jpg", "rb")
-        ocvOutput = image2.read(56000)
-        ocvOutput = base64.b64encode(ocvOutput)
-        image2.close()
-
-        self.updateData( "update", image, ocvOutput )
+        self.updateData( "update" )
 
         self.sleep()
 
     # Envía al servidor una actualización con los datos recogidos en el barrido actual
     # Type es el tipo de log se creará, si es "update" será un log de información, si es "error" es un log de error
     # Se puede añadir en un futuro un log "command" que se crea por comando de un usuario administrador
-    def updateData( self, type, image, ocvOutput ):
+    def updateData( self, type ):
+        # Declaramos las variables a null
+        image = None
+        ocvOutput = None
+
+        # Si ha habido algun error mandámos también las fotos
+        if type ==  "error": 
+            image1 = open("images/ia.jpg", "rb")
+            image = image1.read(56000)
+            image1.close()
+
+            image2 = open("images/original.jpg", "rb")
+            ocvOutput = image2.read(56000)
+            image2.close()
+
         self.sendInfo({
             "id": self.id,
             "time": time.time(),
@@ -186,25 +182,39 @@ class Sol:
         # Info
         print('Moviendo Panel')
 
+        # Recogemos las dimensiones de la imagen
         imgCoords = self.img.shape
+
         self.coords = list(self.coords)
-        diffX = imgCoords[1] / 2 - (self.coords[0])
-        diffY = imgCoords[0] / 2 - (self.coords[1])
+
+        # Calculamos la diferencia de ambos ejex ( en PX )
+        # TODO => PASAR ESTO A º
+        diffX = (self.coords[0]) - imgCoords[1] / 2 
+        diffY = imgCoords[0] / 2 - (self.coords[1])  
+        print(imgCoords, self.coords)
 
         # Con la hipotenusa podemos comprobar si el centro de la imagen está dentro del radio
         # del sol por lo que podemos optimizar mucho más el programa
         hipotenusa = math.sqrt(pow(diffX, 2) + pow(diffY, 2))
 
+        # Debuging del movimiento del panel
         if self.debug:
             self.debugPanel(imgCoords, diffX, diffY, hipotenusa)
 
         # Solo movemos las placa cuando el sol no esté en el centro de la foto
-        if hipotenusa < self.coords[2]:
-            self.moveAxis('x', diffX, True)
-            self.moveAxis('y', diffY, True)
-        else:
-            self.sleep()
-                
+        if hipotenusa > self.coords[2]:
+            # Motor 1 ( EjeX )
+            posicionMotor1 = self.getPanelParams('motores')[0]['grados']
+            movimientoMotor = posicionMotor1 - diffX if posicionMotor1 > diffX else posicionMotor1 + diffX
+            print("Moviendo el ejeX: ", movimientoMotor)
+            self.moveAxis('X', movimientoMotor, True)
+
+            # Motor 2 ( EjeY )
+            posicionMotor2 = self.getPanelParams('motores')[1]['grados']
+            movimientoMotor = posicionMotor2 - diffY if posicionMotor2 > diffY else posicionMotor2 + diffY            
+            print("Moviendo el ejeX: ", movimientoMotor)
+            self.moveAxis('Y', movimientoMotor, True)
+        
     # Función que duerme el programa el tiempo necesario
     # dependiendo de la situación
     def sleep( self ):
@@ -230,6 +240,18 @@ class Sol:
         else:
             print(' El sol no está en el centro de la foto')
 
+    # Le entra el parámetro que se pide de la placa
+    def getPanelParams( self, param ):
+        # Ejecutamos el archivo estado para generar el archivo con las variables
+        os.system(os.getenv('CHECK_STATUS'))
+
+        # Recogemos la salida del comando
+        file = open(os.getenv('STATUS_FILE'))
+        file = file.read()
+        file = json.loads(file)
+
+        return file[param]
+
     # Mueve la placa en el EjeX        
     def moveAxis( self, axis, amount, auto ):
         
@@ -238,28 +260,33 @@ class Sol:
         self.auto = auto
 
         # Comando de movimiento
-        os.system(os.getenv('MOVE_COMMAND'))
+        command = os.getenv('MOVE_COMMAND')
+        command = command + '1' if axis == 'X' else command + '2'
+        command += ' ' + str(amount)
+        print("Ejecutando = " + command)
 
-        # Recogemos la salida del comando
-        resultado = open(os.getenv('MOVE_FILE'))
-        finished = resultado.readline() == '0'
+        # Ejecutamos el comando
+        os.system(command)
+        motor = 0 if axis == 'X' else 1
 
-        # Inicializamos una variable de contador para el máximo de intentos
-        tries = 1
+        # He intentado simular un do while pero esto me chirría muchisimo, aun así me parece más limpio
+        # Este bucle se ejecuta como máximo 5 veces, en intervalos de 5 segundos para comprobar si el comando se ha ejecutado apropiadamente
+        tries = 0
+        while True:
+            status = self.getPanelParams('motores')
+            finished = not status[motor]['activo']
 
-        # Bucle que espera el cambio en el archivo de referencia
-        # TODO -> que mande un mensaje de error al servidor para almacenarlo como log cuando falle con los datos
-        while not finished or tries == 5:
-
-            resultado = open(os.getenv('MOVE_FILE'))
-            status = resultado.readline()
-
-            finished = False if status == '1' else True
-
-            tries + 1
-
-            time.sleep(5)
-
+            if finished or tries >= 5:
+                break
+            else:
+                tries += 1
+                time.sleep(5)
+            
     # Apaga/enciende el modo automático del panel
     def switchAuto( self ):
         self.auto = not self.auto
+
+# def sendinfo(info):
+#     print("Sending info", info)
+
+# sol = Sol(sendinfo)

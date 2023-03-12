@@ -36,7 +36,7 @@ interface PanelUpdate {
         motor2: number
         battery: string
         potency: number
-        image: string
+        image: string 
         ocvOutput: string
     }
 }
