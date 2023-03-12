@@ -25,7 +25,7 @@ class Sol:
             #     status = resultado.readline()
 
             #Recogemos la foto realizada
-            self.img = cv2.imread("./sunPhoto.jpg", cv2.IMREAD_COLOR)
+            self.img = cv2.imread(os.getenv('ORIGINAL_IMAGE_URI'), cv2.IMREAD_COLOR)
 
             print("Imagen Abierta")
 
@@ -64,7 +64,7 @@ class Sol:
                 #cv2.imshow("Detected Circle", self.img)
                 cv2.waitKey(0)
 
-            cv2.imwrite('./result.jpg', self.img)
+            cv2.imwrite(os.getenv('IA_IMAGE_URI'), self.img)
             
             circles = np.round(detected_circles[0, :]).astype("int")
 
@@ -192,6 +192,9 @@ class Sol:
             tries + 1
 
             time.sleep(5)
+
+    def switchAuto( self ):
+        self.auto = not self.auto
 
 def sendInfo( info ):
     print('Sending Info', info)
