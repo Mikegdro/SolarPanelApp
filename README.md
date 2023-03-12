@@ -43,9 +43,3 @@ Para instalar la librería de socket.io, hay que ejecutar el comando `pip instal
 ### Inteligencia Artificial con Python [OpenCV2](https://www.geeksforgeeks.org/circle-detection-using-opencv-python/) en Python
 
 Se utiliza la biblioteca de cv2 de OpenCV, para detectar la posición del sol y calcular el movimiento necesario para que la placa apunte hacia el siendo lo más eficiente posible.
-
-    TO-DO:
-        · Pasar imágenes a través de web socket
-        · Implementar que lance un comando del sistema en ves de coger la imagen en local
-        · Implementar funcionalidad de auto-colocación.
-        · Implementar funcionalidad de parar y encender la auto-colocación con un comando de WS.
