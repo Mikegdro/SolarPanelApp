@@ -9,6 +9,19 @@ load_dotenv()
 
 class Sol:
 
+    # Constructor de la clase
+    def __init__( self, sendInfo ):
+        self.auto = True
+        self.img = None
+        self.coords = None
+        self.debug = True
+
+        # Callback con la función a ejecutar para mandar datos
+        self.sendInfo = sendInfo
+
+        # Función que ejecuta el bucle principal recursivamente
+        self.adjustPanel()
+
     # Esta función ejecuta el comando de sistema que hace que el panel solar haga una foto al sol
     def takePhoto( self ):
         try:
@@ -68,24 +81,11 @@ class Sol:
             
             circles = np.round(detected_circles[0, :]).astype("int")
 
-            ejex = circles[0][0]
-            ejey = circles[0][1]
-            ejez = circles[0][2]
+            ejex = int(circles[0][0])
+            ejey = int(circles[0][1])
+            ejez = int(circles[0][2])
 
             return {ejex, ejey, ejez}
-
-    # Constructor de la clase
-    def __init__( self, sendInfo ):
-        self.auto = True
-        self.img = None
-        self.coords = None
-        self.debug = True
-
-        # Callback con la función a ejecutar para mandar datos
-        self.sendInfo = sendInfo
-
-        # Función que ejecuta el bucle principal recursivamente
-        self.adjustPanel()
 
     # Función principal llamada de manera recursiva que 
     # establece el loop del programa
@@ -107,9 +107,16 @@ class Sol:
         # Si la IA encuentra algo movemos el panel
         self.movePanel()
 
-        self.sendInfo([self.coords, self.img])
-
+        # Mandamos la información sobre el movimiento
         print("Sending info")
+
+        image1 = open("images/ia.jpg", "rb")
+        image1Data = image1.read(56000)
+
+        image2 = open("images/original.jpg", "rb")
+        image2Data = image2.read(56000)
+
+        self.sendInfo(self.coords, image1Data, image2Data)
 
         self.sleep()
 
@@ -193,10 +200,6 @@ class Sol:
 
             time.sleep(5)
 
+    # Apaga/enciende el modo automático del panel
     def switchAuto( self ):
         self.auto = not self.auto
-
-def sendInfo( info ):
-    print('Sending Info', info)
-
-# sol = Sol(sendInfo)

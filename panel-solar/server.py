@@ -1,8 +1,11 @@
 import socketio
 import os
+import json
 
 from Sol import Sol
 from dotenv import load_dotenv
+
+
 
 load_dotenv()
 
@@ -37,8 +40,12 @@ class PanelServer:
         def disconnect():
             print('disconnected from server')
 
-        def sendInfo(info):
-            print('Sending Info' + str(info))
+        def sendInfo(coords, image1Data, image2Data):
+            self.sio.emit('message', {
+                "coords": json.dumps(coords),
+                "image1": image1Data,
+                "image2": image2Data
+            })
     
     # Función que recibe la ip del servidor principal e intenta conectarse 
     def connect(self):
