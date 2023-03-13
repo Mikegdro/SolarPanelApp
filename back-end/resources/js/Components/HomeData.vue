@@ -20,12 +20,14 @@
         min: 0,
         datasets: [
             {
-                label: "Potencia",
+                label: "Potencia/Hora",
                 backgroundColor: '#fff',
                 tension: 0.5,
                 data: [],
                 pointBackgroundColor: ["white"],
-                pointRadius: [3]
+                pointRadius: [3],
+                lineBackgroundColor: "transparent",
+                drawActiveElementsOnTop: false
             },
         ]
     }
@@ -33,6 +35,11 @@
     let chartOptions =  {
         responsive: true,
         maintainAspectRatio: false,
+        elements: {
+            line: {
+                borderColor: "rgba(200, 200, 200, 0.3)"
+            }
+        },
         scales: {
             x: {
                 grid: {
@@ -53,16 +60,26 @@
         }
     }
 
-    function getData() {
+    async function getData() {
         // Aquí recogeríamos de la api los datos
-        let data = ["5.0","10.0","15.5","25.0","30.0","34.2","46.1","60.6","75.5","85.4","65.5"];
+        // let data = ["5.0","10.0","15.5","25.0","30.0","34.2","46.1","60.6","75.5","85.4","65.5"];
+        let res = await fetch('http://localhost:3000/getHourlyData');
+        let resData = await res.json();
+
+        let data = []
+
+        for(let object in resData) {
+            let potencia = resData[object]
+            console.log(resData)
+            console.log(potencia)
+        }
 
         // Comprobamos el largo del dataset para ver cual es el último elemento
-        chartData.datasets[0].data = data;
-        chartData.datasets[0].pointBackgroundColor[data.length - 1] = 'red'
+        // chartData.datasets[0].data = data;
+        // chartData.datasets[0].pointBackgroundColor[data.length - 1] = 'red'
 
-        //Renderizamos el componente de nuevo
-        chartkey.value += 1;
+        // //Renderizamos el componente de nuevo
+        // chartkey.value += 1;
     }
 
     onMounted(() => {
@@ -79,7 +96,3 @@
         :key="chartkey"
     />
 </template>
-
-<style>
-
-</style>

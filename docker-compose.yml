@@ -1,49 +1,49 @@
 version: '2'
 
 services:
-  mariadb:
-    image: mariadb
-    restart: always
-    ports:
-       - '3306:3306'
-    environment:
-      - MYSQL_ROOT_PASSWORD=S3cret
-      - MYSQL_PASSWORD=adminpass
-      - MYSQL_USER=admin
-      - MYSQL_DATABASE=solar-panel
-    volumes:
-      - ./data:/var/lib/mysql
-
-  laravel:
-    build: ./back-end
-    ports:
-      - '8000:8000'
-      - '5173:5173'
-    environment:
-      - DB_HOST=mariadb
-      - DB_PORT=3306
-      - DB_USERNAME=admin
-      - DB_PASSWORD=adminpass
-      - DB_DATABASE=solar-panel
-    volumes:
-      - './back-end:/app'
-    depends_on:
-      - mariadb
-
-  phpmyadmin:
-    image: phpmyadmin
-    restart: always
-    ports: 
-      - '8001:80'
-    environment:
-      - PMA_HOST=mariadb
-      - PMA_PORT=3306
-      - PMA_USER=admin
-      - PMA_PASSWORD=adminpass
-      - PMA_ARBITRARY=1
-
-    depends_on:
-      - mariadb
+#  mariadb:
+#    image: mariadb
+#    restart: always
+#    ports:
+#       - '3306:3306'
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=S3cret
+#      - MYSQL_PASSWORD=adminpass
+#      - MYSQL_USER=admin
+#      - MYSQL_DATABASE=solar-panel
+#    volumes:
+#      - ./data:/var/lib/mysql
+#
+#  laravel:
+#    build: ./back-end
+#    ports:
+#      - '8000:8000'
+#      - '5173:5173'
+#    environment:
+#      - DB_HOST=mariadb
+#      - DB_PORT=3306
+#      - DB_USERNAME=admin
+#      - DB_PASSWORD=adminpass
+#      - DB_DATABASE=solar-panel
+#    volumes:
+#      - './back-end:/app'
+#    depends_on:
+#      - mariadb
+#
+#  phpmyadmin:
+#    image: phpmyadmin
+#    restart: always
+#    ports:
+#      - '8001:80'
+#    environment:
+#      - PMA_HOST=mariadb
+#      - PMA_PORT=3306
+#      - PMA_USER=admin
+#      - PMA_PASSWORD=adminpass
+#      - PMA_ARBITRARY=1
+#
+#    depends_on:
+#      - mariadb
 
   redis:
     image: redis:alpine

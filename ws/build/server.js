@@ -40,6 +40,7 @@ var axios = require('axios');
 var redis = require("redis");
 var jwt = require('jsonwebtoken');
 var date = require('date-and-time');
+var cors = require('cors');
 var client = redis.createClient({
     url: 'redis://redis:6379' // Cambiar localhost por nombre contenedor Docker
 });
@@ -58,23 +59,23 @@ function connectRedis() {
 connectRedis();
 require('dotenv').config();
 var app = require('express')();
+app.use(cors());
 var http = require('http');
 var server = http.createServer(app);
 var Server = require("socket.io").Server;
 var io = new Server(server);
-app.use(function (req, res, next) {
-    if (!req.headers.authorization) {
-        return res.status(403).json({ error: 'No credentials sent!' });
-    }
-    var token = req.headers.authorization.split(" ")[1];
-    try {
-        //jwt.verify(token, process.env.PRIVATE_KEY); // Comprobamos si el token ha sido firmado por nosotros - Descomentar en producción
-        next();
-    }
-    catch (e) {
-        return res.status(403).json({ error: 'The token provided is not valid!' });
-    }
-});
+// app.use((req : any, res : any, next : Function) => {
+//     if (!req.headers.authorization) {
+//         return res.status(403).json({ error: 'No credentials sent!' });
+//     }
+//     const token = req.headers.authorization.split(" ")[1];
+//     try{
+//         //jwt.verify(token, process.env.PRIVATE_KEY); // Comprobamos si el token ha sido firmado por nosotros - Descomentar en producción
+//         next();
+//     }catch(e){
+//         return res.status(403).json({ error: 'The token provided is not valid!' });
+//     }
+// })
 app.get('/getHourlyData', function (req, res) {
     var allLogs = getLogs();
     var logs = {};
@@ -190,6 +191,7 @@ function insertLog(data) {
     else {
         fileData[data.id] = [data];
     }
+    console.log(fileData);
     var newData = JSON.stringify(fileData);
     fs.writeFileSync('logs.json', newData, function (err) {
         if (err)

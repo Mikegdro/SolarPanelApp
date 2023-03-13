@@ -3,6 +3,7 @@ const axios = require('axios');
 const redis = require("redis");
 const jwt = require('jsonwebtoken');
 const date = require('date-and-time')
+const cors = require('cors')
 
 const client = redis.createClient({
     url: 'redis://redis:6379' // Cambiar localhost por nombre contenedor Docker
@@ -13,24 +14,27 @@ async function connectRedis(){
 connectRedis();
 
 require('dotenv').config();
+
 const app = require('express')();
+app.use(cors())
+
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
-app.use((req : any, res : any, next : Function) => {
-    if (!req.headers.authorization) {
-        return res.status(403).json({ error: 'No credentials sent!' });
-    }
-    const token = req.headers.authorization.split(" ")[1];
-    try{
-        //jwt.verify(token, process.env.PRIVATE_KEY); // Comprobamos si el token ha sido firmado por nosotros - Descomentar en producción
-        next();
-    }catch(e){
-        return res.status(403).json({ error: 'The token provided is not valid!' });
-    }
-})
+// app.use((req : any, res : any, next : Function) => {
+//     if (!req.headers.authorization) {
+//         return res.status(403).json({ error: 'No credentials sent!' });
+//     }
+//     const token = req.headers.authorization.split(" ")[1];
+//     try{
+//         //jwt.verify(token, process.env.PRIVATE_KEY); // Comprobamos si el token ha sido firmado por nosotros - Descomentar en producción
+//         next();
+//     }catch(e){
+//         return res.status(403).json({ error: 'The token provided is not valid!' });
+//     }
+// })
 
 app.get('/getHourlyData', (req : any, res : any) => {
     let allLogs = getLogs();
