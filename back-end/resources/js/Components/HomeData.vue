@@ -16,6 +16,8 @@
 
     let chartData = {
         labels: labels,
+        max: 100,
+        min: 0,
         datasets: [
             {
                 label: "Potencia",
@@ -30,11 +32,24 @@
 
     let chartOptions =  {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         scales: {
-            xAxis: [{
-                
-            }]
+            x: {
+                grid: {
+                    display: false
+                },
+                border: {
+                    color: "transparent"
+                }
+            },
+            y: {
+                grid: {
+                    display: false
+                },
+                border: {
+                    color: "transparent"
+                }
+            }
         }
     }
 
