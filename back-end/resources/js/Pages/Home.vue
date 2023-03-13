@@ -23,7 +23,7 @@
             >
                 <div class="h-5/6 flex flex-col items-center gap-60">
                     <CurrentStatus />
-                    <div class="w-full flex-1">
+                    <div class="w-full flex-1 flex justify-center items-center">
                         <HomeData />
                     </div>
                 </div>
