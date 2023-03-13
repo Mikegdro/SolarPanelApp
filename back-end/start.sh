@@ -5,5 +5,5 @@ do
     echo "Retrying"
 done
 php artisan key:generate
-npm run dev
-php artisan serve
+php artisan octane:install --server="swoole"
+php artisan octane:start --server="swoole" --host="0.0.0.0"
