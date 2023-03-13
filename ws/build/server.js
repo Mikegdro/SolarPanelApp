@@ -39,6 +39,7 @@ var fs = require('fs');
 var axios = require('axios');
 var redis = require("redis");
 var jwt = require('jsonwebtoken');
+var date = require('date-and-time');
 var client = redis.createClient({
     url: 'redis://redis:6379' // Cambiar localhost por nombre contenedor Docker
 });
@@ -56,11 +57,45 @@ function connectRedis() {
 }
 connectRedis();
 require('dotenv').config();
-var io = require("socket.io")(3000, {
-    cors: {
-        origin: ["*"], // Aquí se pondrán el/los clientes que se conecten al ws
-    },
+var app = require('express')();
+var http = require('http');
+var server = http.createServer(app);
+var Server = require("socket.io").Server;
+var io = new Server(server);
+app.use(function (req, res, next) {
+    if (!req.headers.authorization) {
+        return res.status(403).json({ error: 'No credentials sent!' });
+    }
+    var token = req.headers.authorization.split(" ")[1];
+    try {
+        //jwt.verify(token, process.env.PRIVATE_KEY); // Comprobamos si el token ha sido firmado por nosotros - Descomentar en producción
+        next();
+    }
+    catch (e) {
+        return res.status(403).json({ error: 'The token provided is not valid!' });
+    }
 });
+app.get('/getHourlyData', function (req, res) {
+    var allLogs = getLogs();
+    var logs = {};
+    for (var log in allLogs) {
+        getLastLogOfEveryHour(allLogs[log], logs, log);
+    }
+    return res.json(logs);
+});
+function getLastLogOfEveryHour(logs, newLogs, identifier) {
+    newLogs[identifier] = [];
+    var hour = 7;
+    while (hour <= 21) {
+        var last = logs.filter(function (element) {
+            return element.hour == hour;
+        });
+        if (last[last.length - 1]) {
+            newLogs[identifier].push(last[last.length - 1]);
+        }
+        hour++;
+    }
+}
 var oneDay = 86400000;
 var interval = 7200000;
 var start = Date.now();
@@ -106,16 +141,17 @@ io.use(authMiddleware);
 io.on('connection', function (socket) {
     console.log("socket connected: " + socket);
     socket.on('solar-panel-update', function (data) {
-        console.log(data);
         if (instanceOfPanelUpdate(data)) {
             console.log("Inserting log...");
+            var newDate = new Date(data.time * 1000);
+            data.time = date.format(newDate, 'Y-M-D HH:mm:ss.SSS');
+            data.hour = date.format(newDate, 'H');
             insertLog(data);
             io.emit('panel-update', data);
         }
     });
     io.to(socket.id).emit('test');
     socket.on('save-panel-id', function (data) {
-        console.log(data);
         client.set(data.id, socket.id);
     });
     socket.on('solar-panel-command', function (data) { return __awaiter(void 0, void 0, void 0, function () {
@@ -125,7 +161,6 @@ io.on('connection', function (socket) {
                 case 0: return [4 /*yield*/, client.get(data.id)];
                 case 1:
                     socketId = _a.sent();
-                    console.log(socketId);
                     io.to(socketId).emit('command', {
                         command: data.command,
                     });
@@ -170,3 +205,6 @@ function getLogs() {
     var fileData = JSON.parse(file);
     return fileData;
 }
+server.listen(3000, function () {
+    console.log('listening on *:3000');
+});

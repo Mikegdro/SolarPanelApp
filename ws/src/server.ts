@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const redis = require("redis");
 const jwt = require('jsonwebtoken');
+const date = require('date-and-time')
 
 const client = redis.createClient({
     url: 'redis://redis:6379' // Cambiar localhost por nombre contenedor Docker
@@ -12,11 +13,48 @@ async function connectRedis(){
 connectRedis();
 
 require('dotenv').config();
-const io = require("socket.io")(3000, {
-    cors: {
-        origin: ["*"], // Aquí se pondrán el/los clientes que se conecten al ws
-    },
+const app = require('express')();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+
+app.use((req : any, res : any, next : Function) => {
+    if (!req.headers.authorization) {
+        return res.status(403).json({ error: 'No credentials sent!' });
+    }
+    const token = req.headers.authorization.split(" ")[1];
+    try{
+        //jwt.verify(token, process.env.PRIVATE_KEY); // Comprobamos si el token ha sido firmado por nosotros - Descomentar en producción
+        next();
+    }catch(e){
+        return res.status(403).json({ error: 'The token provided is not valid!' });
+    }
+})
+
+app.get('/getHourlyData', (req : any, res : any) => {
+    let allLogs = getLogs();
+    let logs : any = {};
+    for (const log in allLogs) {
+        getLastLogOfEveryHour(allLogs[log], logs, log);
+    }
+    return res.json(logs);
 });
+
+function getLastLogOfEveryHour(logs : any, newLogs : any, identifier : string){
+    newLogs[identifier] = [];
+
+    let hour = 7;
+    while(hour <= 21){
+        let last = logs.filter((element : any) =>{
+            return element.hour == hour;
+        });
+        if(last[last.length - 1]){
+            newLogs[identifier].push(last[last.length - 1]);
+        }
+        hour++;
+    }
+}
 
 const oneDay = 86400000;
 const interval = 7200000;
@@ -25,8 +63,9 @@ let start = Date.now();
 // Modelos de mensajes
 interface PanelUpdate {
     id: string// Identificador único del panel
-    time: string // Fecha del update
+    time: any // Fecha del update
     type: string
+    hour: string
     log: {
         sensor1: number
         sensor2: number
@@ -80,9 +119,11 @@ io.on('connection', (socket : any) =>{
     console.log("socket connected: " + socket);
     
     socket.on('solar-panel-update', (data : PanelUpdate) =>{
-        console.log(data)
         if(instanceOfPanelUpdate(data)){
             console.log("Inserting log...")
+            let newDate = new Date(data.time * 1000);
+            data.time = date.format(newDate,'Y-M-D HH:mm:ss.SSS');
+            data.hour = date.format(newDate,'H');
             insertLog(data);
             io.emit('panel-update', data);
         }
@@ -91,13 +132,11 @@ io.on('connection', (socket : any) =>{
     io.to(socket.id).emit('test')
     
     socket.on('save-panel-id', (data : any) =>{
-        console.log(data)
         client.set(data.id, socket.id);
     });
 
     socket.on('solar-panel-command', async (data : PanelCommand) =>{
         let socketId = await client.get(data.id);
-        console.log(socketId)
         io.to(socketId).emit('command', {
             command: data.command,
         });
@@ -143,3 +182,7 @@ function getLogs(){
     let fileData = JSON.parse(file);
     return fileData;
 }
+
+server.listen(3000, () => {
+    console.log('listening on *:3000');
+});
