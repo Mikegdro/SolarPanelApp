@@ -63,9 +63,9 @@ app.use(cors());
 var http = require('http');
 var server = http.createServer(app);
 var Server = require("socket.io").Server;
-var io = new Server(server /*,{
+var io = new Server(server, {
     path: "wserver"
-}*/);
+});
 // app.use((req : any, res : any, next : Function) => {
 //     if (!req.headers.authorization) {
 //         return res.status(403).json({ error: 'No credentials sent!' });

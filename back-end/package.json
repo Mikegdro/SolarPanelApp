@@ -18,6 +18,7 @@
     },
     "dependencies": {
         "chart.js": "^4.2.1",
+        "cors": "^2.8.5",
         "daisyui": "^2.51.3",
         "vue-chartjs": "^5.2.0"
     }

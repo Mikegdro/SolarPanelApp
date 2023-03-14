@@ -5,8 +5,6 @@
     import { onMounted } from 'vue';
     import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
-    
-
     ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, CategoryScale, LinearScale);
 
     let name = 'LineChart';
@@ -62,24 +60,24 @@
 
     async function getData() {
         // Aquí recogeríamos de la api los datos
-        // let data = ["5.0","10.0","15.5","25.0","30.0","34.2","46.1","60.6","75.5","85.4","65.5"];
-        let res = await fetch('http://localhost:3000/getHourlyData');
-        let resData = await res.json();
+        let data = ["5.0","10.0","15.5","25.0","30.0","34.2","46.1","60.6","75.5","85.4","65.5"];
+        let res = await fetch('http://localhost:443/getHourlyData');
+        // let resData = await res.json();
 
-        let data = []
+        // let data = []
 
-        for(let object in resData) {
-            let potencia = resData[object]
-            console.log(resData)
-            console.log(potencia)
-        }
+        // for(let object in resData) {
+        //     let potencia = resData[object]
+        //     console.log(resData)
+        //     console.log(potencia)
+        // }
 
         // Comprobamos el largo del dataset para ver cual es el último elemento
-        // chartData.datasets[0].data = data;
-        // chartData.datasets[0].pointBackgroundColor[data.length - 1] = 'red'
+        chartData.datasets[0].data = data;
+        chartData.datasets[0].pointBackgroundColor[data.length - 1] = 'red'
 
-        // //Renderizamos el componente de nuevo
-        // chartkey.value += 1;
+        //Renderizamos el componente de nuevo
+        chartkey.value += 1;
     }
 
     onMounted(() => {
