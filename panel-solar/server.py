@@ -47,7 +47,7 @@ class PanelServer:
         print(ip)
 
         #Para que la conexión funcione se tiene que conectar a un nombre de espacios concreto
-        self.sio.connect(ip, wait_timeout = 10, socketio_path="/wserver", auth={
+        self.sio.connect(ip, wait_timeout = 10, auth={
             'token': 'holi'
         })
         

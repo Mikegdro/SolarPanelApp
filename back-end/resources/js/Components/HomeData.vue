@@ -61,7 +61,7 @@
     async function getData() {
         // Aquí recogeríamos de la api los datos
         let data = ["5.0","10.0","15.5","25.0","30.0","34.2","46.1","60.6","75.5","85.4","65.5"];
-        let res = await fetch('http://localhost:443/getHourlyData');
+        // let res = await fetch('http://localhost:3000/getHourlyData');
         // let resData = await res.json();
 
         // let data = []
